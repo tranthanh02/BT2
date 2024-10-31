@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  api-gateway-8080:
+    container_name: api-gateway-8080
+    build: ./api-gateway-8080
+    ports:
+      - 8080:8080
+    networks:
+      - node-network
+
+  order-service:
+    container_name: order-service
+    build: ./order-service
+    networks:
+      - node-network
+
+  product-service:
+    container_name: product-service
+    build: ./product-service
+    networks:
+      - node-network
+
+  shipping-service:
+    container_name: shipping-service
+    build: ./shipping-service
+    networks:
+      - node-network
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@some-postgres:5432/beamin?schema=public
+
+  user-service:
+    container_name: user-service
+    build: ./user-service
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    external: true

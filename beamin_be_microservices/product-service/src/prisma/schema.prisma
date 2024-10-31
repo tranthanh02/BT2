@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model categories {
+  category_id   Int         @id @default(autoincrement())
+  category_name String      @db.VarChar(100)
+  description   String?
+  image_url     String      @db.VarChar(100)
+  fooditems     fooditems[]
+}
+
+model fooditems {
+  food_id            Int          @id @default(autoincrement())
+  name               String       @db.VarChar(100)
+  description        String?
+  price              Decimal      @db.Decimal(10, 2)
+  image_url          String?
+  category_id        Int?
+  additional_options Json?
+  food_slug          String?      @db.VarChar(100)
+  created_at         DateTime?    @default(now()) @db.Timestamp(6)
+  categories         categories?  @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+  inventory          inventory?
+  orderitems         orderitems[]
+}
+
+model inventory {
+  food_id        Int       @id
+  stock_quantity Int
+  fooditems      fooditems @relation(fields: [food_id], references: [food_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model orderitems {
+  order_item_id Int        @id @default(autoincrement())
+  order_id      Int?
+  food_id       Int?
+  quantity      Int
+  price         Decimal    @db.Decimal(10, 2)
+  fooditems     fooditems? @relation(fields: [food_id], references: [food_id], onDelete: NoAction, onUpdate: NoAction)
+  orders        orders?    @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model orders {
+  order_id        Int               @id @default(autoincrement())
+  user_id         Int?
+  total_amount    Decimal           @db.Decimal(10, 2)
+  order_status    String?           @default("Pending") @db.VarChar(50)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  orderitems      orderitems[]
+  users           users?            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  shippingdetails shippingdetails[]
+}
+
+model shippingdetails {
+  shipping_id        Int       @id @default(autoincrement())
+  order_id           Int?
+  shipping_address   String
+  shipping_status    String?   @default("Processing") @db.VarChar(50)
+  estimated_delivery DateTime? @db.Timestamp(6)
+  orders             orders?   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  user_id      Int       @id @default(autoincrement())
+  username     String    @unique @db.VarChar(50)
+  password     String    @db.VarChar(100)
+  email        String    @unique @db.VarChar(100)
+  phone_number String?   @db.VarChar(15)
+  address      String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  orders       orders[]
+}
